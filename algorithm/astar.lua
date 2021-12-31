@@ -17,7 +17,6 @@
                     * 将节点m加入open_set中
 ]]
 
-local class = require("class")
 local astar = class('astar')
 
 function astar:run(bpos, epos, get_neighbour_nodes, heuristic_cost)

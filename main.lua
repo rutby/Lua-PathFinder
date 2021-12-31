@@ -1,3 +1,4 @@
+class = require('class')
 local input = require("input")
 local astar = require('algorithm.astar')()
 
