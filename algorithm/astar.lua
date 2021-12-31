@@ -39,6 +39,7 @@ function astar:run(bpos, epos, get_neighbour_nodes, heuristic_cost)
                 table.insert(rpath, n.id)
                 n = n.parent
             end
+            table.insert(rpath, n.id)
             
             for k = #rpath, 1, -1 do 
                 table.insert(path, rpath[k])
