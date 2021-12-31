@@ -20,9 +20,12 @@
 local class = require("class")
 local astar = class('astar')
 
-function astar:run(bpos, epos, get_neighbour_nodes, get_cost)
+function astar:run(bpos, epos, get_neighbour_nodes, heuristic_cost)
     self._open_list = {}
     self._close_list = {}
+    self._heuristic_cost = heuristic_cost
+    self._bpos = bpos
+    self._epos = epos
     local path = {}
     local find = false
     
@@ -32,9 +35,14 @@ function astar:run(bpos, epos, get_neighbour_nodes, get_cost)
         local node_index = self:get_min_cost_index()
         local n = self._open_list[node_index]
         if n == epos then 
+            local rpath = {}
             while(n.parent) do 
-                table.insert(path, n.id)
+                table.insert(rpath, n.id)
                 n = n.parent
+            end
+            
+            for k = #rpath, 1, -1 do 
+                table.insert(path, rpath[k])
             end
             find = true
         else
@@ -46,7 +54,6 @@ function astar:run(bpos, epos, get_neighbour_nodes, get_cost)
             for k, v in ipairs(nodes) do 
                 if not v.in_close and not v.in_open then 
                     v.parent = n
-                    v.dst_dis = get_cost(v, bpos, epos)
                     self:join_open_list(v)
                 end
             end
@@ -59,7 +66,17 @@ function astar:run(bpos, epos, get_neighbour_nodes, get_cost)
     return path
 end
 
+function astar:clone(tb)
+    local result = {}
+    for k, v in pairs(tb) do 
+        table.insert(result, v)
+    end
+    return result
+end
+
 function astar:join_open_list(node)
+    node.h = self._heuristic_cost(node, self._epos)
+    node.g = (node.parent and node.parent.g + self._heuristic_cost(node, node.parent)) or 0
     node.in_open = true
     table.insert(self._open_list, node)
 end
@@ -72,9 +89,10 @@ end
 function astar:clear_properties(tb)
     for k, v in ipairs(tb) do 
         v.parent = nil
-        v.dst_dis = nil
         v.in_close = nil
         v.in_open = nil
+        v.g = nil
+        v.h = nil
     end
 end
 
@@ -82,8 +100,8 @@ function astar:get_min_cost_index()
     local min_dis
     local min_index
     for k, v in ipairs(self._open_list) do 
-        if min_dis == nil or v.dst_dis < min_dis then 
-            min_dis = v.dst_dis
+        if min_dis == nil or (v.g + v.h) < min_dis then 
+            min_dis = (v.g + v.h)
             min_index = k
         end
     end

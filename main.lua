@@ -1,8 +1,14 @@
 local input = require("input")
-local astar = require('algorithm.astar')
+local astar = require('algorithm.astar')()
 
--- =========================================================
-local get_neighbour_nodes = function(node) 
+local is_in_boundary = function(row, col)
+    local nCol = input.nCol
+    local nRow = input.nRow
+    return row >=1 and row <= nRow and col >= 1 and col <= nCol
+end
+
+-- ========================================================= 曼哈顿距离
+local get_neighbour_nodes1 = function(node) 
     local nodes = {}
     local nCol = input.nCol
     local nRow = input.nRow
@@ -34,18 +40,64 @@ local get_neighbour_nodes = function(node)
     return validNodes
 end
 
-local get_cost = function(pos, bpos, epos)
-    local g = math.abs(pos.row - bpos.row) + math.abs(pos.col - bpos.col)
-    local h = math.abs(pos.row - epos.row) + math.abs(pos.col - epos.col)
+local heuristic1 = function(bpos, epos)
+    local dx = math.abs(bpos.col - epos.col)
+    local dy = math.abs(bpos.row - epos.row)
+    return dx + dy
+end
+
+local get_cost1 = function(pos, bpos, epos)
+    local g = heuristic1(pos, bpos)
+    local h = heuristic1(pos, epos)
     return g + h
 end
 
-local main = function()
-    input.dump('::map::')
+-- ========================================================= 对角距离
+
+local get_neighbour_nodes2 = function(node) 
+    local nodes = {}
+    local nCol = input.nCol
+    local nRow = input.nRow
+    local pos2index = input.pos2index
+    local map = input.map
     
-    local path = astar():run(input.map[58], input.map[124], get_neighbour_nodes, get_cost)
-    input.dump('::path::', path)
+    local neighbour = {
+        {node.row - 1, node.col - 1},
+        {node.row - 1, node.col},
+        {node.row - 1, node.col + 1},
+        {node.row, node.col - 1},
+        {node.row, node.col + 1},
+        {node.row + 1, node.col - 1},
+        {node.row + 1, node.col},
+        {node.row + 1, node.col + 1},
+    }
+    
+    for k, v in ipairs(neighbour) do 
+        if is_in_boundary(v[1], v[2]) then 
+            table.insert(nodes, map[pos2index(v[1], v[2])])
+        end
+    end
+    
+    local validNodes = {}
+    for k, v in ipairs(nodes) do 
+        if v.tag == 1 then 
+            table.insert(validNodes, v)
+        end
+    end
+    return validNodes
+end
+
+local heuristic2 = function(bpos, epos)
+    local dx = math.abs(bpos.col - epos.col)
+    local dy = math.abs(bpos.row - epos.row)
+    return (dx + dy) + (1.4142 - 2) * math.min(dx, dy)
 end
 
 -- ========================================================= 
+local main = function()
+    input.dump('::map::')
+    local path = astar:run(input.map[58], input.map[124], get_neighbour_nodes1, heuristic1)
+    -- local path = astar:run(input.map[58], input.map[124], get_neighbour_nodes2, heuristic2)
+    input.dump('::path::', path)
+end
 main()
