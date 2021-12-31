@@ -10,34 +10,26 @@ end
 -- ========================================================= 曼哈顿距离
 local get_neighbour_nodes1 = function(node) 
     local nodes = {}
-    local nCol = input.nCol
-    local nRow = input.nRow
     local pos2index = input.pos2index
     local map = input.map
+
+    local neighbour = {
+        {node.row - 1, node.col},
+        {node.row, node.col - 1},
+        {node.row, node.col + 1},
+        {node.row + 1, node.col},
+    }
     
-    if node.row - 1 >= 1 then
-        table.insert(nodes, map[pos2index(node.row - 1, node.col)])
-    end
-    
-    if node.row + 1 <= nRow then
-        table.insert(nodes, map[pos2index(node.row + 1, node.col)])
-    end
-    
-    if node.col - 1 >= 1 then
-        table.insert(nodes, map[pos2index(node.row, node.col - 1)])
-    end
-    
-    if node.col + 1 <= nCol then
-        table.insert(nodes, map[pos2index(node.row, node.col + 1)])
-    end
-    
-    local validNodes = {}
-    for k, v in ipairs(nodes) do 
-        if v.tag == 1 then 
-            table.insert(validNodes, v)
+    for k, v in ipairs(neighbour) do 
+        if is_in_boundary(v[1], v[2]) then 
+            local node = map[pos2index(v[1], v[2])]
+            if node.tag == 1 then 
+                table.insert(nodes, node)
+            end
         end
     end
-    return validNodes
+    
+    return nodes
 end
 
 local heuristic1 = function(bpos, epos)
@@ -56,8 +48,6 @@ end
 
 local get_neighbour_nodes2 = function(node) 
     local nodes = {}
-    local nCol = input.nCol
-    local nRow = input.nRow
     local pos2index = input.pos2index
     local map = input.map
     
@@ -74,17 +64,14 @@ local get_neighbour_nodes2 = function(node)
     
     for k, v in ipairs(neighbour) do 
         if is_in_boundary(v[1], v[2]) then 
-            table.insert(nodes, map[pos2index(v[1], v[2])])
+            local node = map[pos2index(v[1], v[2])]
+            if node.tag == 1 then 
+                table.insert(nodes, node)
+            end
         end
     end
-    
-    local validNodes = {}
-    for k, v in ipairs(nodes) do 
-        if v.tag == 1 then 
-            table.insert(validNodes, v)
-        end
-    end
-    return validNodes
+
+    return nodes
 end
 
 local heuristic2 = function(bpos, epos)
